@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { SharedModule } from './shared.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { KatarakModule } from './katarak/katarak.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserModule } from './user/user.module';
     SharedModule,
     AuthModule,
     UserModule,
+    KatarakModule,
   ],
   controllers: [AppController],
   providers: [AppService],

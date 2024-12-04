@@ -14,6 +14,7 @@ async function bootstrap() {
     .setTitle('API OptiLans')
     .setDescription('API for OptiLans')
     .setVersion('0.1')
+    .addBearerAuth()
     .build();
      
   const document = SwaggerModule.createDocument(app, config);
