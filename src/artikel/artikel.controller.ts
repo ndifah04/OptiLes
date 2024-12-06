@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiQuery, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiBody, ApiConsumes, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { ArtikelService } from './artikel.service';
 import { CreateArtikelDto } from './dto/create-artikel.dto';
 import { QueryDTO } from 'src/dto/query-dto';
@@ -22,6 +22,7 @@ import { AuthGuard, Roles } from 'src/auth/auth.guard';
 @ApiTags('Artikel')
 @Controller('api/artikel')
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 export class ArtikelController {
   constructor(private readonly artikelService: ArtikelService) {}
 
