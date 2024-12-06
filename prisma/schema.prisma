@@ -42,7 +42,10 @@ model artikel {
   id Int @id @default(autoincrement())
   judul String @db.VarChar(20)
   isi String @db.Text
-  gambar String
+  gambar String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum Role {

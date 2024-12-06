@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/common';
 import { exec } from 'child_process';
 import { unlinkSync } from 'fs';
 import { join } from 'path';
@@ -34,7 +34,23 @@ export class KatarakService {
             }
         })
     }
+  }
 
+  async getHistoryImage(id: number) {
+    const history = await this.prisma.history_katarak.findUnique({
+      where: {
+        id,
+      },
+      select : {
+        nama_file : true
+      }
+    });
+
+    if (!history) {
+      throw new NotFoundException('Data tidak ditemukan');
+    }
+
+    return history;
   }
 
   private predictFile(path: string) {
@@ -77,13 +93,10 @@ export class KatarakService {
   @CatchPrismaError()
   @FormatResponse()
   async predict(user_id: string, file: Express.Multer.File) {
-    const image = saveFile(file);
-    const tempImagePath = join(process.cwd(), 'uploads', image);
+    const image = saveFile(file, "history_katarak");
+    const tempImagePath = join(process.cwd(), 'uploads', "history_katarak", image);
     const prediction = await this.predictFile(tempImagePath);
-    const result = prediction as string | number[];
-    if (typeof result == 'string') {
-      throw new BadGatewayException('Gagal');
-    }
+    const result = prediction as number[];
 
     const history = await this.prisma.history_katarak.create({
       data: {
