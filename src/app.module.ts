@@ -6,6 +6,7 @@ import { SharedModule } from './shared.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { KatarakModule } from './katarak/katarak.module';
+import { ArtikelModule } from './artikel/artikel.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { KatarakModule } from './katarak/katarak.module';
     AuthModule,
     UserModule,
     KatarakModule,
+    ArtikelModule,
   ],
   controllers: [AppController],
   providers: [AppService],

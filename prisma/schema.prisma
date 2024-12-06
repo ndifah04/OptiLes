@@ -23,10 +23,27 @@ model User{
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  history history_katarak[]
 }
 
 
+
+model history_katarak {
+  id Int @id @default(autoincrement())
+  user_id String @db.Uuid
+  nama_file String
+  user User @relation(fields: [user_id], references: [uuid])
+  normal Float
+  mature Float
+  immature Float
+}
+
+model artikel {
+  id Int @id @default(autoincrement())
+  judul String @db.VarChar(20)
+  isi String @db.Text
+  gambar String
+}
 
 enum Role {
   USER

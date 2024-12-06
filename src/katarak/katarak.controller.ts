@@ -1,12 +1,14 @@
-import { BadGatewayException, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadGatewayException, Controller, Get, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { exec } from 'child_process';
 import { join } from 'path';
 import { KatarakService } from './katarak.service';
 import { unlinkSync, writeFileSync } from 'fs';
 import { PredictDto } from './dto/predict.dto';
-import { ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiConsumes, ApiBody, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { UserDecorator, UserType } from 'src/auth/user.decorator';
+import { QueryDTO } from 'src/dto/query-dto';
 
 @Controller('api/katarak')
 @ApiBearerAuth()
@@ -24,53 +26,31 @@ export class KatarakController {
         image: {
           type: 'string',
           format: 'binary',
+          
         },
       },
     },
   })
-  async predict(@UploadedFile() file: Express.Multer.File) {
-    const tempImagePath = join(process.cwd(), 'uploads', file.originalname);
+  async predict(@UserDecorator() user : UserType, @UploadedFile() file: Express.Multer.File) {
+    return this.katarakService.predict(user.uuid, file)
+  }
 
-    // Write the file buffer to a temporary file
-    writeFileSync(tempImagePath, file.buffer);
-
-    const prediction  = new Promise((resolve, reject) => {
-      exec(`npx cross-env TF_ENABLE_ONEDNN_OPTS=0 python src/python/predict.py ${tempImagePath}`, (error, stdout, stderr) => {
-        // Delete the temporary file after prediction
-        unlinkSync(tempImagePath);
-
-        if (error) {
-          reject(`Error: ${stderr}`);
-        } else {
-          const regex = /\[\[(.*?)\]\]/g;
-          const matches = stdout.match(regex);
-
-          if (matches) {
-            const value = matches.map((match) => {
-              const value = match.slice(2, -2); // Remove the surrounding [[ and ]]
-              return value
-            }).join();
-            resolve(value.split(",").map(Number).map((value) => {
-              console.log(value < 0.00001)
-              return ((value < 0 && 0 ) || value)
-            }))
-            return
-          }
-          resolve("Error")
-        }
-      });
-    });
-
-    const result = await prediction as string | number[] 
-    if(typeof result == "string") {
-      throw new BadGatewayException("Gagal")
-    }
-
-    
-    return {
-      "normal" : result[2],
-      "mature" : result[1],
-      "immature" : result[0],
-    }
+  @Get("history")
+  @UseGuards(AuthGuard)
+  @ApiResponse({status : 200, description : "Success", example : {
+    data : [
+      {
+        id : 1,
+        user_id : "uuid",
+        nama_file : "file.jpg",
+        normal : 0.2,
+        mature : 0.5,
+        immature : 0.5
+      }
+    ],
+    count : 0
+  }})
+  async getHistory(@UserDecorator() user : UserType, @Query() query : QueryDTO) {
+    return this.katarakService.getHistory(user.uuid, query)
   }
 }
