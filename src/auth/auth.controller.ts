@@ -6,7 +6,7 @@ import { ApiTags, ApiResponse, ApiBody, ApiOperation, getSchemaPath } from '@nes
 import { User } from '@prisma/client';
 import { UserDecorator, UserType } from './user.decorator';
 import { ResetPasswordDTO } from './dto/reset-password.dto';
-import { UserDTO } from 'src/user/dto/user-dto';
+import { UserDTO } from 'src/user/dto/user.dto';
 
 @ApiTags('Auth')
 @Controller('api/auth')
@@ -30,6 +30,14 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDTO) {
     return await this.authService.login(loginDto);
+  }
+
+  @Post('refresh-token')
+  @ApiBody({ schema: { type: 'object', properties: { refresh_token: { type: 'string' } } } })
+  @ApiResponse({ status: 200, description: 'Token refreshed', schema: { type: 'object', properties: { access_token: { type: 'string' } } } })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  async refreshToken(@Body('refresh_token') refreshToken: string) {
+    return await this.authService.refreshToken(refreshToken);
   }
 
   @Post('register')

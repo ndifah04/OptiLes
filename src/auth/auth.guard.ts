@@ -18,6 +18,7 @@ export class AuthGuard implements CanActivate {
     const roles = this.reflector.get<Role[]>('roles', context.getHandler());
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers['authorization'];
+    const refreshTokenHeader = request.headers['x-refresh-token'];
 
     if (!authHeader) {
       throw new UnauthorizedException('Authorization header is missing');
@@ -47,6 +48,15 @@ export class AuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      if (error.name === 'TokenExpiredError' && refreshTokenHeader) {
+        try {
+          const newAccessToken = await this.authService.generateNewAccessToken(refreshTokenHeader);
+          request.headers['authorization'] = `Bearer ${newAccessToken.access_token}`;
+          return true;
+        } catch (refreshError) {
+          throw new UnauthorizedException('Invalid refresh token');
+        }
+      }
       throw new UnauthorizedException('Invalid token');
     }
   }

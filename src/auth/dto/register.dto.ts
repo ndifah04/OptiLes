@@ -15,5 +15,8 @@ export class RegisterDTO {
     @IsString()
     username : string;
 
+    @ApiProperty({description :"Fullname", type : String, example : "Galbi Nadifah"})
+    @IsString()
+    nama : string;
 
 }

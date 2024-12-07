@@ -26,15 +26,19 @@ export class AuthService {
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
 
-      const token = await this.jwtService.signAsync({ uuid : user.uuid });
+      const accessToken = await this.jwtService.signAsync({ uuid : user.uuid });
+      const refreshToken = await this.jwtService.signAsync({ uuid : user.uuid }, { expiresIn: '7d' });
 
       return {
-        access_token : token,
+        access_token : accessToken,
+        refresh_token: refreshToken,
         user : result
       };
     }
     throw new UnauthorizedException('Invalid credentials');
   }
+
+  
 
   async register(data : RegisterDTO) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -42,17 +46,60 @@ export class AuthService {
       data : {
         ...data
         ,password : hashedPassword,
-        role : "USER"
+        role : "USER",
+        profile : {
+          create : {
+            nama : data.nama
+          }
+        }
       }
     });
 
     const { password, ...result } = user;
 
-    const token = await this.jwtService.signAsync({ uuid : user.uuid });
+    const accessToken = await this.jwtService.signAsync({ uuid : user.uuid });
+    const refreshToken = await this.jwtService.signAsync({ uuid : user.uuid }, { expiresIn: '7d' });
 
     return {
-      access_token : token,
+      access_token : accessToken,
+      refresh_token: refreshToken,
       user : result
+    }
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      const user = await this.prisma.user.findFirst({
+        where: { uuid: payload.uuid }
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const accessToken = await this.jwtService.signAsync({ uuid: user.uuid });
+      return { access_token: accessToken };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async generateNewAccessToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      const user = await this.prisma.user.findFirst({
+        where: { uuid: payload.uuid }
+      });
+  
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+  
+      const accessToken = await this.jwtService.signAsync({ uuid: user.uuid });
+      return { access_token: accessToken };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
   }
 

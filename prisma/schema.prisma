@@ -24,9 +24,15 @@ model User{
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   history history_katarak[]
+  profile Profile?
 }
 
-
+model Profile {
+  user_id String @db.Uuid @id
+  nama String
+  foto_profile String?
+  user User @relation(fields: [user_id], references: [uuid])
+}
 
 model history_katarak {
   id Int @id @default(autoincrement())
