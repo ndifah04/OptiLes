@@ -15,6 +15,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('')
+  @Roles("ADMIN")
   @ApiOperation({ summary: 'Search users' })
   @ApiResponse({ status: 200, description: 'List of users', type: [UserDTO] })
   async searchUser(@Query() query: QueryDTO) {
@@ -22,6 +23,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @Roles("ADMIN")
   @ApiOperation({ summary: 'Get user details' })
   @ApiParam({ name: 'id', description: 'User ID', example: 'fcefbdf6-6f50-4db0-979d-032951a02222' })
   @ApiResponse({ status: 200, description: 'User details', type: UserDTO })
